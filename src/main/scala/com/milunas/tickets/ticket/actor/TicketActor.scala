@@ -1,9 +1,9 @@
 package com.milunas.tickets.ticket.actor
 
-import akka.actor.Actor
+import akka.actor.{Actor, Props}
 import com.milunas.tickets.cinema.domain.Movie
 import com.milunas.tickets.ticket.domain.{Ticket, Tickets}
-import com.milunas.tickets.ticket.message.{AddTickets, BuyTickets, GetMovie}
+import com.milunas.tickets.ticket.message.{AddTickets, BuyTickets, GetMovieFromTicketActor}
 
 class TicketActor (movie: String) extends Actor {
 
@@ -15,7 +15,7 @@ class TicketActor (movie: String) extends Actor {
 
     case BuyTickets(numberOfTickets) => buyTickets(numberOfTickets)
 
-    case GetMovie => sender() ! Some(Movie(movie, tickets.size))
+    case GetMovieFromTicketActor => sender() ! Some(Movie(movie, tickets.size))
   }
 
   private def buyTickets(numberOfTickets: Int): Unit = {
@@ -27,5 +27,8 @@ class TicketActor (movie: String) extends Actor {
       sender() ! Tickets(movie)
     }
   }
+}
 
+object TicketActor {
+  def props(movie: String) = Props(new TicketActor(movie))
 }

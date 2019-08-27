@@ -1,15 +1,15 @@
 package com.milunas.tickets.cinema.actor
 
-import akka.actor.{Actor, ActorRef}
+import akka.actor.{Actor, ActorRef, Props}
 import akka.pattern.{ask, pipe}
 import akka.util.Timeout
 import com.milunas.tickets.cinema.domain.{Movie, Movies}
 import com.milunas.tickets.cinema.message.{CreateMovie, GetMovie, GetMovies, GetTickets}
 import com.milunas.tickets.cinema.output.MovieExists
 import com.milunas.tickets.cinema.output.MovieResponse.MovieCreated
-import com.milunas.tickets.ticket.TicketActor
+import com.milunas.tickets.ticket.actor.TicketActor
 import com.milunas.tickets.ticket.domain.{Ticket, Tickets}
-import com.milunas.tickets.ticket.message.{AddTickets, BuyTickets}
+import com.milunas.tickets.ticket.message.{AddTickets, BuyTickets, GetMovieFromTicketActor}
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -35,7 +35,7 @@ class CinemaActor(implicit timeout: Timeout) extends Actor {
 
     case GetMovie(movie) =>
       def notFound(): Unit = sender() ! None
-      def getEvent(child: ActorRef): Unit = child forward GetMovie
+      def getEvent(child: ActorRef): Unit = child forward GetMovieFromTicketActor
       context.child(movie).fold(notFound())(getEvent)
 
     case GetMovies =>
@@ -59,4 +59,8 @@ class CinemaActor(implicit timeout: Timeout) extends Actor {
     sender() ! MovieCreated(Movie(name, tickets))
   }
 
+}
+
+object CinemaActor {
+  def props(implicit timeout: Timeout) = Props(new CinemaActor())
 }
